@@ -3,21 +3,37 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
   try {
-    const senderResponse = await fetch("https://api.sender.net/forms/bmZnM0/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(req.body)
-    });
+    const senderRes = await fetch(
+      "https://api.sender.net/v2/subscribers", 
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.SENDER_API_KEY}`
+        },
+        body: JSON.stringify({
+          email: email,
+          groups: ["your-group-id-here"]
+        })
+      }
+    );
 
-    const text = await senderResponse.text();
+    const data = await senderRes.json();
 
-    // Pass Sender's response back to the browser
-    return res.status(senderResponse.status).send(text);
+    if (!senderRes.ok) {
+      return res.status(400).json({ error: data });
+    }
+
+    res.status(200).json({ success: true, data });
 
   } catch (err) {
-    return res.status(500).json({ error: err.toString() });
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 }
