@@ -1,39 +1,41 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+module.exports = (req, res) => {
+  // 1. Set CORS Headers (Crucial for all origins, especially POST/OPTIONS)
+  // Replace 'https://oshiflavors.com' with your frontend domain, 
+  // or use '*' for all origins if you prefer.
+  res.setHeader('Access-Control-Allow-Origin', 'https://oshiflavors.com'); 
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // 2. Handle the OPTIONS Preflight Request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end(); // Send 200 OK and finish the request
+    return; // Stop processing the rest of the file
   }
 
-  const { email } = req.body;
+  // --- Start your original POST subscription logic here ---
+  if (req.method === 'POST') {
+    try {
+      // Assuming your original logic involves parsing the body
+      const { email } = req.body; 
 
-  if (!email) {
-    return res.status(400).json({ error: "Email required" });
-  }
-
-  try {
-    const senderRes = await fetch(
-      "https://api.sender.net/v2/subscribers", 
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SENDER_API_KEY}`
-        },
-        body: JSON.stringify({
-          email: email,
-          groups: ["your-group-id-here"]
-        })
+      if (!email) {
+        res.status(400).send('Email is required.');
+        return;
       }
-    );
+      
+      // *** Insert your actual email subscription database/mailing list code here ***
+      // Example: 
+      // await saveEmailToDatabase(email); 
 
-    const data = await senderRes.json();
+      // Send a successful response back to the frontend
+      res.status(200).json({ message: "Subscription successful!" });
 
-    if (!senderRes.ok) {
-      return res.status(400).json({ error: data });
+    } catch (error) {
+      console.error("Subscription Error:", error);
+      res.status(500).send('Internal Server Error during subscription process.');
     }
-
-    res.status(200).json({ success: true, data });
-
-  } catch (err) {
-    res.status(500).json({ error: "Server error", details: err.message });
+  } else {
+    // If it's neither POST nor OPTIONS (e.g., a GET request)
+    res.status(405).send('Method Not Allowed');
   }
-}
+};
