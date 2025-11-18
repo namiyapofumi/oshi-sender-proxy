@@ -1,41 +1,21 @@
 module.exports = (req, res) => {
-  // 1. Set CORS Headers (Crucial for all origins, especially POST/OPTIONS)
-  // Replace 'https://oshiflavors.com' with your frontend domain, 
-  // or use '*' for all origins if you prefer.
+  // 1. Headers set BEFORE ANY LOGIC
   res.setHeader('Access-Control-Allow-Origin', 'https://oshiflavors.com'); 
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 2. Handle the OPTIONS Preflight Request
+  // 2. IMMEDIATE check for OPTIONS preflight
   if (req.method === 'OPTIONS') {
-    res.status(200).end(); // Send 200 OK and finish the request
-    return; // Stop processing the rest of the file
+    res.status(200).end(); // Send the necessary 200 OK status
+    return; // THIS IS CRITICAL: Stops execution and prevents 404/500
   }
 
-  // --- Start your original POST subscription logic here ---
+  // 3. Your POST logic follows
   if (req.method === 'POST') {
-    try {
-      // Assuming your original logic involves parsing the body
-      const { email } = req.body; 
-
-      if (!email) {
-        res.status(400).send('Email is required.');
-        return;
-      }
-      
-      // *** Insert your actual email subscription database/mailing list code here ***
-      // Example: 
-      // await saveEmailToDatabase(email); 
-
-      // Send a successful response back to the frontend
-      res.status(200).json({ message: "Subscription successful!" });
-
-    } catch (error) {
-      console.error("Subscription Error:", error);
-      res.status(500).send('Internal Server Error during subscription process.');
-    }
+    // ... your original subscription code ...
+    res.status(200).json({ message: "Subscription successful!" }); 
   } else {
-    // If it's neither POST nor OPTIONS (e.g., a GET request)
+    // Handle other methods
     res.status(405).send('Method Not Allowed');
   }
 };
