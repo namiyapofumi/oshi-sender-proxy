@@ -1,4 +1,4 @@
-module.exports = (req, res) => {
+export default (req, res) => {
   // 1. Headers set BEFORE ANY LOGIC
   res.setHeader('Access-Control-Allow-Origin', '*'); 
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
